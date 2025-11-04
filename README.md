@@ -16,7 +16,7 @@ Neural networks, CNNs, RNNs, GANs, VAEs, Transformers
 - **Tech:** PyTorch, Keras, TensorFlow
 - **Topics:** Image classification, generative models, NLP
 
-#### [Advanced Statistics](./advanced-statistics) | Grade: 19/20 ⭐
+#### [Advanced Statistics](./advanced-statistics) | Grade: 19/20
 Kernel methods, RKHS, Support Vector Regression, robust estimation
 - **Tech:** Python, NumPy, scikit-learn
 - **Topics:** Kernel PCA, SVR, contaminated data analysis

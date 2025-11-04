@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-admin
+  namespace: ginflix
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend-admin
+  template:
+    metadata:
+      labels:
+        app: frontend-admin
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: frontend-admin
+        image: registry.gin-telecom.ovh/ginflix/frontend-admin:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: ginflix-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-admin-service
+  namespace: ginflix
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: frontend-admin

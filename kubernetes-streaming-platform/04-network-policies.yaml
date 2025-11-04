@@ -1,0 +1,168 @@
+# Network Policy pour isoler MongoDB - seul le backend peut y accéder
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mongodb-isolation
+  namespace: ginflix
+spec:
+  podSelector:
+    matchLabels:
+      app: mongodb
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: backend
+    ports:
+    - protocol: TCP
+      port: 27017
+  egress:
+  - {} # Permet tout le trafic sortant (pour les requêtes DNS, etc.)
+---
+# Network Policy pour le Backend - peut accéder à MongoDB et recevoir du trafic des frontends
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-isolation
+  namespace: ginflix
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 8080
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend-admin
+    ports:
+    - protocol: TCP
+      port: 8080
+  - from: [] # Permet le trafic externe (LoadBalancer)
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mongodb
+    ports:
+    - protocol: TCP
+      port: 27017
+  - {} # Permet l'accès externe (S3, Keycloak, DNS, etc.)
+---
+# Network Policy pour le Frontend - peut accéder au backend et streamer
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-isolation
+  namespace: ginflix
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from: [] # Permet le trafic externe (utilisateurs)
+    ports:
+    - protocol: TCP
+      port: 80
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: backend
+    ports:
+    - protocol: TCP
+      port: 8080
+  - to:
+    - podSelector:
+        matchLabels:
+          app: streamer
+    ports:
+    - protocol: TCP
+      port: 8080
+  - {} # Permet l'accès externe (CDN, API externes, DNS, etc.)
+---
+# Network Policy pour le Frontend Admin - peut accéder au backend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-admin-isolation
+  namespace: ginflix
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend-admin
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from: [] # Permet le trafic externe (administrateurs)
+    ports:
+    - protocol: TCP
+      port: 80
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: backend
+    ports:
+    - protocol: TCP
+      port: 8080
+  - {} # Permet l'accès externe (authentification, DNS, etc.)
+---
+# Network Policy pour le Streamer - accessible depuis le frontend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: streamer-isolation
+  namespace: ginflix
+spec:
+  podSelector:
+    matchLabels:
+      app: streamer
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 8080
+  - from: [] # Permet le trafic externe direct (LoadBalancer)
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - {} # Permet l'accès externe (S3 pour le streaming, DNS, etc.)
+---
+# Network Policy par défaut - Deny All pour plus de sécurité
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: ginflix
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress

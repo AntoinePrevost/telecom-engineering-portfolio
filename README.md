@@ -116,7 +116,7 @@ telecom-engineering-portfolio/
 
 **Antoine Prevost**  
 📧 antoine.prevost.contact@gmail.com  
-💼 [LinkedIn](https://linkedin.com/in/antoine-prevost-a29929264/)  
+💼 [LinkedIn](https://linkedin.com/in/antoine-prevost-/)  
 📍 Paris, France
 
 ---
